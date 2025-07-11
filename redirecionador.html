@@ -1,1 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>🔑 Verificando sua Key...</title>
+  <style>
+    body {
+      background-color: #111;
+      color: white;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding-top: 50px;
+    }
+    #resultado {
+      font-size: 20px;
+      margin-top: 30px;
+    }
+  </style>
+</head>
+<body>
+  <h2>🔁 Processando...</h2>
+  <div id="resultado">Aguarde, estamos validando seu acesso...</div>
 
+  <script>
+    async function getIP() {
+      try {
+        const res = await fetch('https://api.ipify.org');
+        return await res.text();
+      } catch {
+        return null;
+      }
+    }
+
+    (async () => {
+      const params = new URLSearchParams(window.location.search);
+      const token = params.get("token");
+
+      if (!token) {
+        document.getElementById("resultado").innerText = "❌ Token ausente. Acesse somente pelo Linkvertise.";
+        return;
+      }
+
+      const ip = await getIP();
+      if (!ip) {
+        document.getElementById("resultado").innerText = "❌ Erro ao obter IP.";
+        return;
+      }
+
+      const apiURL = "https://script.google.com/macros/s/AKfycbygnV5poqrdJlh-jnGszxxyiF2le11dARkZDsughPBL71tCishEpGHZTucDPWwFbd9ekA/exec";
+
+      try {
+        const res = await fetch(`${apiURL}?tokenTemp=${token}&ip=${ip}`);
+        const key = await res.text();
+
+        const resultado = document.getElementById("resultado");
+
+        if (key === "TOKEN_TEMP_EXPIRADO") {
+          resultado.innerText = "⏰ Token expirado. Pegue uma nova key no jogo.";
+        } else if (key === "TOKEN_TEMP_INVALIDO") {
+          resultado.innerText = "❌ Token inválido. Acesse apenas pelo botão no jogo.";
+        } else {
+          resultado.innerHTML = `
+            ✅ <strong>Sua key foi gerada com sucesso!</strong><br><br>
+            🔑 <code style="font-size:22px">${key}</code><br><br>
+            📋 Copie a key e cole no jogo para desbloquear!
+          `;
+        }
+      } catch (e) {
+        document.getElementById("resultado").innerText = "❌ Erro ao conectar à API.";
+      }
+    })();
+  </script>
+</body>
+</html>
